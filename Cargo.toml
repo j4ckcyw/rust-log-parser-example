@@ -11,3 +11,10 @@ bytes = "1.x"
 env_logger = "0.8"
 log = "0.4"
 regex = "1.x"
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "simple"
+harness = false

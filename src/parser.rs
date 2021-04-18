@@ -41,6 +41,8 @@ impl Parser {
             }
             None => {}
         }
+        // Make sure regex matches something!
+        // assert!(!map.is_empty(), "event is empty while parsing {}:\n{:#?}", event, self.regex.captures(event));
         map
     }
 }
@@ -62,5 +64,16 @@ mod tests {
         let mut second = HashMap::new();
         second.insert("f".to_string(), "2".to_string());
         assert_eq!(vec![first, second], events);
+    }
+
+    #[test]
+    fn rust_env_logger() {
+        let _ = env_logger::builder().is_test(true).try_init();
+        let parser = Parser::new("\\[(?P<timestamp>([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))) (?P<level>\\w+)\\s+(?P<class>[::\\w]+)\\] (?P<content>.*)");
+        let bytes = Bytes::from(["[2021-04-18T21:51:25Z TRACE hyper::proto::h1::conn] flushed({role=client}): State { reading: Init, writing: Init, keep_alive: Busy }",
+            "[2021-04-18T21:51:25Z TRACE want] poll_want: taker wants!"
+        ].join("\n"));
+        let events = parser.parse(bytes);
+        debug!("{:#?}", events);
     }
 }

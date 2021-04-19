@@ -1,9 +1,9 @@
 use bytes::Bytes;
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use log::debug;
-use criterion::{criterion_group, criterion_main, Criterion, Throughput, BenchmarkId};
+use rust_logs_regex::parser::Parser;
 use std::fs::File;
 use std::io::Read;
-use rust_logs_regex::parser::Parser;
 
 fn read_testinput(file: &str) -> Bytes {
     let file = File::open(format!("{}{}", "./testinput/", file)).unwrap();

@@ -1,6 +1,6 @@
 use bytes::Bytes;
 use log::debug;
-use regex::Regex;
+use regex::bytes::Regex;
 use std::collections::HashMap;
 
 /// Parser splits log by line into events, then parse each event to fields with regex.
@@ -16,9 +16,8 @@ impl Parser {
     }
 
     pub fn parse(&self, bytes: Bytes) -> Vec<HashMap<String, String>> {
-        let utf8 = String::from_utf8(bytes.to_vec()).unwrap();
         let mut result = vec![];
-        for line in utf8.split('\n') {
+        for line in bytes.split(|&char| char == b'\n') {
             if line.is_empty() {
                 continue;
             }
@@ -27,15 +26,17 @@ impl Parser {
         result
     }
 
-    fn parse_event(&self, event: &str) -> HashMap<String, String> {
+    fn parse_event(&self, event: &[u8]) -> HashMap<String, String> {
         let mut map = HashMap::new();
-        debug!("Parsing event: {}", event);
         match self.regex.captures(event) {
             Some(caps) => {
                 for name in self.regex.capture_names() {
                     if let Some(name) = name {
                         let cap = caps.name(name).unwrap();
-                        map.insert(name.to_string(), cap.as_str().to_string());
+                        map.insert(
+                            name.to_string(),
+                            String::from_utf8_lossy(cap.as_bytes()).to_string(),
+                        );
                     }
                 }
             }

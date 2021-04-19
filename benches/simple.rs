@@ -10,7 +10,6 @@ fn read_testinput(file: &str) -> Bytes {
     let mut reader = std::io::BufReader::new(file);
     let mut buf = String::new();
     reader.read_to_string(&mut buf).unwrap();
-    debug!("{}", buf);
     Bytes::from(buf)
 }
 
@@ -20,13 +19,11 @@ fn parser_benchmark(c: &mut Criterion) {
     let parser =
         Parser::new(r"\[(?P<timestamp>\S+)\s+(?P<level>\S+)\s+(?P<class>\S+)]\s+(?P<content>.*)");
     for file in ["small.log", "medium.log", "large.log"].iter() {
-        debug!("Parsing {}", &file);
         let bytes = read_testinput(file);
         group.throughput(Throughput::Bytes(bytes.len() as u64));
         group.bench_with_input(BenchmarkId::from_parameter(&file), &bytes, |b, bytes| {
             b.iter(|| {
-                let events = parser.parse(bytes.clone());
-                debug!("{:#?}", events);
+                let _events = parser.parse(bytes.clone());
             });
         });
     }

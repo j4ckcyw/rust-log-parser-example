@@ -1,5 +1,4 @@
 use bytes::Bytes;
-use log::debug;
 use regex::bytes::Regex;
 use std::collections::HashMap;
 
@@ -40,10 +39,13 @@ impl Parser {
                     }
                 }
             }
-            None => {}
+            None => {
+                panic!(
+                    "Event does not match regex: {}",
+                    String::from_utf8_lossy(event)
+                );
+            }
         }
-        // Make sure regex matches something!
-        // assert!(!map.is_empty(), "event is empty while parsing {}:\n{:#?}", event, self.regex.captures(event));
         map
     }
 }
@@ -51,6 +53,7 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use log::debug;
 
     #[test]
     fn it_works() {
@@ -70,7 +73,9 @@ mod tests {
     #[test]
     fn rust_env_logger() {
         let _ = env_logger::builder().is_test(true).try_init();
-        let parser = Parser::new("\\[(?P<timestamp>([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))) (?P<level>\\w+)\\s+(?P<class>[::\\w]+)\\] (?P<content>.*)");
+        let parser = Parser::new(
+            r"\[(?P<timestamp>\S+)\s+(?P<level>\S+)\s+(?P<class>\S+)]\s+(?P<content>.*)",
+        );
         let bytes = Bytes::from(["[2021-04-18T21:51:25Z TRACE hyper::proto::h1::conn] flushed({role=client}): State { reading: Init, writing: Init, keep_alive: Busy }",
             "[2021-04-18T21:51:25Z TRACE want] poll_want: taker wants!"
         ].join("\n"));

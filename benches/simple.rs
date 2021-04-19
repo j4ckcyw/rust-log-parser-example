@@ -17,10 +17,11 @@ fn read_testinput(file: &str) -> Bytes {
 fn parser_benchmark(c: &mut Criterion) {
     let _ = env_logger::builder().is_test(true).try_init();
     let mut group = c.benchmark_group("parser_benchmark");
+    let parser =
+        Parser::new(r"\[(?P<timestamp>\S+)\s+(?P<level>\S+)\s+(?P<class>\S+)]\s+(?P<content>.*)");
     for file in ["small.log", "medium.log", "large.log"].iter() {
         debug!("Parsing {}", &file);
         let bytes = read_testinput(file);
-        let parser = Parser::new("\\[(?P<timestamp>([0-9]+)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])[Tt]([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60)(\\.[0-9]+)?(([Zz])|([\\+|\\-]([01][0-9]|2[0-3]):[0-5][0-9]))) (?P<level>\\w+)\\s+(?P<class>[::\\w]+)\\] (?P<content>.*)");
         group.throughput(Throughput::Bytes(bytes.len() as u64));
         group.bench_with_input(BenchmarkId::from_parameter(&file), &bytes, |b, bytes| {
             b.iter(|| {

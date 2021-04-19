@@ -27,24 +27,22 @@ impl Parser {
 
     fn parse_event(&self, event: &[u8]) -> HashMap<String, String> {
         let mut map = HashMap::new();
-        match self.regex.captures(event) {
-            Some(caps) => {
-                for name in self.regex.capture_names() {
-                    if let Some(name) = name {
-                        let cap = caps.name(name).unwrap();
-                        map.insert(
-                            name.to_string(),
-                            String::from_utf8_lossy(cap.as_bytes()).to_string(),
-                        );
-                    }
+        for caps in self.regex.captures_iter(event) {
+            for name in self.regex.capture_names() {
+                if let Some(name) = name {
+                    let cap = caps.name(name).unwrap();
+                    map.insert(
+                        name.to_string(),
+                        String::from_utf8_lossy(cap.as_bytes()).to_string(),
+                    );
                 }
             }
-            None => {
-                panic!(
-                    "Event does not match regex: {}",
-                    String::from_utf8_lossy(event)
-                );
-            }
+        }
+        if map.is_empty() {
+            panic!(
+                "Event does not match regex: {}",
+                String::from_utf8_lossy(event)
+            );
         }
         map
     }
